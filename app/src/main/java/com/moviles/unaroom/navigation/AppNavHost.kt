@@ -4,6 +4,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,6 +18,7 @@ import com.moviles.unaroom.ui.screens.login.LoginScreen
 @Composable
 fun AppNavHost(innerPadding: PaddingValues) {
     val navController = rememberNavController()
+    var successMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     NavHost(
         navController = navController,
@@ -25,13 +30,30 @@ fun AppNavHost(innerPadding: PaddingValues) {
         composable(route = AppDestinations.LOGIN) {
             LoginScreen(
                 onLoginClick = {
-                    navController.navigate(AppDestinations.CLASSROOMS)
+                    successMessage = "Login successful"
+                    navController.navigate(AppDestinations.CLASSROOMS) {
+                        popUpTo(AppDestinations.LOGIN) {
+                            inclusive = true
+                        }
+                    }
                 }
             )
         }
 
         composable(route = AppDestinations.CLASSROOMS) {
-            ClassroomsScreen()
+            ClassroomsScreen(
+                successMessage = successMessage,
+                onSuccessMessageShown = {
+                    successMessage = null
+                },
+                onLogoutClick = {
+                    navController.navigate(AppDestinations.LOGIN) {
+                        popUpTo(AppDestinations.CLASSROOMS) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
         }
     }
 }
